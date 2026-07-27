@@ -8,7 +8,7 @@ GitHub: https://github.com/byJoey/yx-auto
 
 - 优选域名：内置了一些常用的优选域名
 - 优选IP：从wetest.vip获取动态IP，支持IPv4/IPv6
-- GitHub优选：可以从GitHub仓库拉取IP列表
+- GitHub优选：默认从gslege/CloudflareIP并发拉取DE、JP、NL、SG、US地区IP列表，也支持自定义来源
 - 多协议支持：VLESS、Trojan、VMess
 - 多客户端格式：Clash、Surge、Quantumult X等
 - 运营商筛选：可以按移动/联通/电信筛选

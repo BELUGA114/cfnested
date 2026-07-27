@@ -19,21 +19,25 @@ let customECHDomain = 'cloudflare-ech.com';
 
 // 默认优选域名列表
 const directDomains = [
-    { name: "cloudflare.182682.xyz", domain: "cloudflare.182682.xyz" },
+    { name: "电信最优", domain: "cloudflare.182682.xyz" },
     { domain: "freeyx.cloudflare88.eu.org" },
-    { domain: "bestcf.top" },
-    { domain: "cdn.2020111.xyz" },
     { domain: "cf.0sm.com" },
-    { domain: "cf.090227.xyz" },
-    { domain: "cf.zhetengsha.eu.org" },
+    { name: "电信最优", domain: "cf.090227.xyz" },
     { domain: "cfip.1323123.xyz" },
+    { name: "电信最优", domain: "mfa.gov.ua" },
+    { name: "电信最优", domain: "www.shopify.com" },
+    { name: "电信最优", domain: "store.ubi.com" },
+    { name: "电信最优", domain: "staticdelivery.nexusmods.com" },
     { domain: "cloudflare-ip.mofashi.ltd" },
     { domain: "cf.877771.xyz" },
-    { domain: "xn--b6gac.eu.org" }
+    { domain: "xn--b6gac.eu.org" },
+    { domain: "saas.sin.fan" }
 ];
 
-// 默认优选IP来源URL
-const defaultIPURL = 'https://raw.githubusercontent.com/qwer-search/bestip/refs/heads/main/kejilandbestip.txt';
+// 默认优选IP来源URL（德国、日本、荷兰、新加坡、美国）
+const defaultIPURLs = ['DE', 'JP', 'NL', 'SG', 'US'].map(
+    region => `https://raw.githubusercontent.com/gslege/CloudflareIP/refs/heads/main/${region}.txt`
+);
 
 // UUID验证
 function isValidUUID(str) {
@@ -228,7 +232,8 @@ async function 请求优选API(urls, 默认端口 = '443', 超时时间 = 3000) 
 
 // 从GitHub获取优选IP（保留原有功能，同时支持优选API）
 async function fetchAndParseNewIPs(piu) {
-    const url = piu || defaultIPURL;
+    const url = piu;
+    if (!url) return [];
     try {
         const response = await fetch(url);
         if (!response.ok) return [];
@@ -546,10 +551,10 @@ async function handleSubscriptionRequest(request, user, customDomain, piu, ipv4E
     // GitHub优选 / 优选API
     if (egi) {
         try {
-            // 检查是否是优选API URL（以https://开头）
-            if (piu && piu.toLowerCase().startsWith('https://')) {
+            // 未指定自定义来源时并发获取全部默认地区；自定义 HTTPS 来源保持原逻辑
+            if (!piu || piu.toLowerCase().startsWith('https://')) {
                 // 从优选API获取IP列表
-                const 优选API的IP = await 请求优选API([piu]);
+                const 优选API的IP = await 请求优选API(piu ? [piu] : defaultIPURLs);
                 if (优选API的IP && 优选API的IP.length > 0) {
                     // 解析IP字符串格式：IP:端口#备注
                     const IP列表 = 优选API的IP.map(原始地址 => {
@@ -1663,7 +1668,7 @@ export default {
             epd = url.searchParams.get('epd') !== 'no';
             epi = url.searchParams.get('epi') !== 'no';
             egi = url.searchParams.get('egi') !== 'no';
-            const piu = url.searchParams.get('piu') || defaultIPURL;
+            const piu = url.searchParams.get('piu');
             
             // 协议选择
             const evEnabled = url.searchParams.get('ev') === 'yes' || (url.searchParams.get('ev') === null && ev);
