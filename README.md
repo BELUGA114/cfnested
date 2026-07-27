@@ -1,17 +1,16 @@
 # 服务器优选工具
 
-一个简化版的Cloudflare Workers优选工具，用来生成订阅链接。
+一个简化版的Cloudflare Workers优选工具，用来生成订阅链接
 
-GitHub: https://github.com/byJoey/yx-auto
+原项目 [yx-auto](https://github.com/byJoey/yx-auto)
 
 ## 主要功能
 
 - 优选域名：内置了一些常用的优选域名
-- 优选IP：从wetest.vip获取动态IP，支持IPv4/IPv6
+- 优选IP：分别从`https://ipdb.api.030101.xyz/?type=bestcfv4`和`https://ipdb.api.030101.xyz/?type=bestcfv6`获取IPv4/IPv6地址，并按返回顺序生成节点
 - GitHub优选：默认从gslege/CloudflareIP并发拉取DE、JP、NL、SG、US地区IP列表，也支持自定义来源
 - 多协议支持：VLESS、Trojan、VMess
 - 多客户端格式：Clash、Surge、Quantumult X等
-- 运营商筛选：可以按移动/联通/电信筛选
 
 ## 部署
 
@@ -58,7 +57,6 @@ https://your-worker.workers.dev/{UUID}/sub?domain=your-domain.com&epd=yes&epi=ye
 - `et` - 启用Trojan（默认no）
 - `mess` - 启用VMess（默认no，注意不是vm，会被屏蔽）
 - `ipv4/ipv6` - IP版本选择（默认都开启）
-- `ispMobile/ispUnicom/ispTelecom` - 运营商筛选（默认都开启）
 - `target` - 输出格式（base64/clash/surge/quantumult）
 
 ## 注意事项

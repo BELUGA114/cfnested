@@ -50,69 +50,30 @@ function getConfigValue(key, defaultValue) {
     return defaultValue || '';
 }
 
-// 获取动态IP列表（支持IPv4/IPv6和运营商筛选）
-async function fetchDynamicIPs(ipv4Enabled = true, ipv6Enabled = true, ispMobile = true, ispUnicom = true, ispTelecom = true) {
-    const v4Url = "https://www.wetest.vip/page/cloudflare/address_v4.html";
-    const v6Url = "https://www.wetest.vip/page/cloudflare/address_v6.html";
-    let results = [];
+// 获取BestCF IPv4/IPv6列表
+async function fetchBestCFIPs(ipv4Enabled = true, ipv6Enabled = true) {
+    const v4URL = 'https://ipdb.api.030101.xyz/?type=bestcfv4';
+    const v6URL = 'https://ipdb.api.030101.xyz/?type=bestcfv6';
+    const [ipv4List, ipv6List] = await Promise.all([
+        ipv4Enabled ? fetchBestCFIPList(v4URL) : Promise.resolve([]),
+        ipv6Enabled ? fetchBestCFIPList(v6URL) : Promise.resolve([])
+    ]);
 
-    try {
-        const fetchPromises = [];
-        if (ipv4Enabled) {
-            fetchPromises.push(fetchAndParseWetest(v4Url));
-        } else {
-            fetchPromises.push(Promise.resolve([]));
-        }
-        if (ipv6Enabled) {
-            fetchPromises.push(fetchAndParseWetest(v6Url));
-        } else {
-            fetchPromises.push(Promise.resolve([]));
-        }
-
-        const [ipv4List, ipv6List] = await Promise.all(fetchPromises);
-        results = [...ipv4List, ...ipv6List];
-        
-        // 按运营商筛选
-        if (results.length > 0) {
-            results = results.filter(item => {
-                const isp = item.isp || '';
-                if (isp.includes('移动') && !ispMobile) return false;
-                if (isp.includes('联通') && !ispUnicom) return false;
-                if (isp.includes('电信') && !ispTelecom) return false;
-                return true;
-            });
-        }
-        
-        return results.length > 0 ? results : [];
-    } catch (e) {
-        return [];
-    }
+    return [...ipv4List, ...ipv6List].map((ip, index) => ({
+        ip,
+        isp: `BestCF-${index + 1}`
+    }));
 }
 
-// 解析wetest页面
-async function fetchAndParseWetest(url) {
+// 解析每行一个IP的BestCF响应
+async function fetchBestCFIPList(url) {
     try {
-        const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const response = await fetch(url);
         if (!response.ok) return [];
-        const html = await response.text();
-        const results = [];
-        const rowRegex = /<tr[\s\S]*?<\/tr>/g;
-        const cellRegex = /<td data-label="线路名称">(.+?)<\/td>[\s\S]*?<td data-label="优选地址">([\d.:a-fA-F]+)<\/td>[\s\S]*?<td data-label="数据中心">(.+?)<\/td>/;
-
-        let match;
-        while ((match = rowRegex.exec(html)) !== null) {
-            const rowHtml = match[0];
-            const cellMatch = rowHtml.match(cellRegex);
-            if (cellMatch && cellMatch[1] && cellMatch[2]) {
-                const colo = cellMatch[3] ? cellMatch[3].trim().replace(/<.*?>/g, '') : '';
-                results.push({
-                    isp: cellMatch[1].trim().replace(/<.*?>/g, ''),
-                    ip: cellMatch[2].trim(),
-                    colo: colo
-                });
-            }
-        }
-        return results;
+        return (await response.text())
+            .split(/\r?\n/)
+            .map(ip => ip.trim())
+            .filter(Boolean);
     } catch (error) {
         return [];
     }
@@ -502,7 +463,7 @@ function generateLinksFromNewIPs(list, user, workerDomain, customPath = '/', ech
 }
 
 // 生成订阅内容
-async function handleSubscriptionRequest(request, user, customDomain, piu, ipv4Enabled, ipv6Enabled, ispMobile, ispUnicom, ispTelecom, evEnabled, etEnabled, vmEnabled, disableNonTLS, customPath, echConfig = null) {
+async function handleSubscriptionRequest(request, user, customDomain, piu, ipv4Enabled, ipv6Enabled, evEnabled, etEnabled, vmEnabled, disableNonTLS, customPath, echConfig = null) {
     const url = new URL(request.url);
     const finalLinks = [];
     const workerDomain = url.hostname;  // workerDomain始终是请求的hostname
@@ -539,9 +500,9 @@ async function handleSubscriptionRequest(request, user, customDomain, piu, ipv4E
     // 优选IP
     if (epi) {
         try {
-            const dynamicIPList = await fetchDynamicIPs(ipv4Enabled, ipv6Enabled, ispMobile, ispUnicom, ispTelecom);
-            if (dynamicIPList.length > 0) {
-                await addNodesFromList(dynamicIPList);
+            const bestCFIPList = await fetchBestCFIPs(ipv4Enabled, ipv6Enabled);
+            if (bestCFIPList.length > 0) {
+                await addNodesFromList(bestCFIPList);
             }
         } catch (error) {
             console.error('获取动态IP失败:', error);
@@ -1314,24 +1275,6 @@ function generateHomePage(scuValue) {
                 </div>
             </div>
             
-            <div class="form-group">
-                <label>运营商选择</label>
-                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="ispMobile" checked>
-                        <span>移动</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="ispUnicom" checked>
-                        <span>联通</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="ispTelecom" checked>
-                        <span>电信</span>
-                    </label>
-                </div>
-            </div>
-            
             <div class="list-item" onclick="toggleSwitch('switchTLS')" style="margin-top: 8px;">
                 <div>
                     <div class="list-item-label">仅TLS节点</div>
@@ -1459,9 +1402,6 @@ function generateHomePage(scuValue) {
             
             const ipv4Enabled = document.getElementById('ipv4Enabled').checked;
             const ipv6Enabled = document.getElementById('ipv6Enabled').checked;
-            const ispMobile = document.getElementById('ispMobile').checked;
-            const ispUnicom = document.getElementById('ispUnicom').checked;
-            const ispTelecom = document.getElementById('ispTelecom').checked;
             
             const githubUrl = document.getElementById('githubUrl').value.trim();
             
@@ -1481,9 +1421,6 @@ function generateHomePage(scuValue) {
             
             if (!ipv4Enabled) subscriptionUrl += '&ipv4=no';
             if (!ipv6Enabled) subscriptionUrl += '&ipv6=no';
-            if (!ispMobile) subscriptionUrl += '&ispMobile=no';
-            if (!ispUnicom) subscriptionUrl += '&ispUnicom=no';
-            if (!ispTelecom) subscriptionUrl += '&ispTelecom=no';
             
             // 添加TLS控制（ECH 开启时也会在服务端强制仅 TLS）
             if (switches.switchTLS) subscriptionUrl += '&dkby=yes';
@@ -1679,11 +1616,6 @@ export default {
             const ipv4Enabled = url.searchParams.get('ipv4') !== 'no';
             const ipv6Enabled = url.searchParams.get('ipv6') !== 'no';
             
-            // 运营商选择
-            const ispMobile = url.searchParams.get('ispMobile') !== 'no';
-            const ispUnicom = url.searchParams.get('ispUnicom') !== 'no';
-            const ispTelecom = url.searchParams.get('ispTelecom') !== 'no';
-            
             // TLS控制（ECH 开启时强制仅 TLS）
             let disableNonTLS = url.searchParams.get('dkby') === 'yes';
             const echParam = url.searchParams.get('ech');
@@ -1696,7 +1628,7 @@ export default {
             // 自定义路径
             const customPath = url.searchParams.get('path') || '/';
 
-            return await handleSubscriptionRequest(request, uuid, domain, piu, ipv4Enabled, ipv6Enabled, ispMobile, ispUnicom, ispTelecom, evEnabled, etEnabled, vmEnabled, disableNonTLS, customPath, echConfig);
+            return await handleSubscriptionRequest(request, uuid, domain, piu, ipv4Enabled, ipv6Enabled, evEnabled, etEnabled, vmEnabled, disableNonTLS, customPath, echConfig);
         }
         
         return new Response('Not Found', { status: 404 });
