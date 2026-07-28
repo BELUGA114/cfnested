@@ -54,8 +54,8 @@ function getConfigValue(key, defaultValue) {
 
 // 获取BestCF IPv4/IPv6列表
 async function fetchBestCFIPs(ipv4Enabled = true, ipv6Enabled = true) {
-    const v4URL = 'https://ipdb.api.030101.xyz/?type=bestcfv4';
-    const v6URL = 'https://ipdb.api.030101.xyz/?type=bestcfv6';
+    const v4URL = 'https://raw.githubusercontent.com/ymyuuu/IPDB/refs/heads/main/BestCF/bestcfv4.txt';
+    const v6URL = 'https://raw.githubusercontent.com/ymyuuu/IPDB/refs/heads/main/BestCF/bestcfv6.txt';
     const [ipv4List, ipv6List] = await Promise.all([
         ipv4Enabled ? fetchBestCFIPList(v4URL) : Promise.resolve([]),
         ipv6Enabled ? fetchBestCFIPList(v6URL) : Promise.resolve([])

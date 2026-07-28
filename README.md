@@ -7,7 +7,7 @@
 ## 主要功能
 
 - 优选域名：内置了一些常用的优选域名
-- 优选IP：分别从`https://ipdb.api.030101.xyz/?type=bestcfv4`和`https://ipdb.api.030101.xyz/?type=bestcfv6`获取IPv4/IPv6地址，并按返回顺序生成节点
+- 优选IP：分别从`ymyuuu/IPDB`仓库的`BestCF/bestcfv4.txt`和`BestCF/bestcfv6.txt`获取IPv4/IPv6地址，并按返回顺序生成节点
 - GitHub优选：默认从gslege/CloudflareIP并发拉取DE、JP、NL、SG、US地区IP列表，也支持自定义来源
 - 多协议支持：VLESS、Trojan、VMess
 - 多客户端格式：Clash、Surge、Quantumult X等
