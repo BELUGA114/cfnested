@@ -29,9 +29,11 @@ const directDomains = [
     { name: "电信最优", domain: "store.ubi.com" },
     { name: "电信最优", domain: "staticdelivery.nexusmods.com" },
     { domain: "cloudflare-ip.mofashi.ltd" },
-    { domain: "cf.877771.xyz" },
+    { name: "联通最优", domain: "cf.877774.xyz" },
     { domain: "xn--b6gac.eu.org" },
-    { domain: "saas.sin.fan" }
+    { domain: "saas.sin.fan" },
+    { name: "移动专属", domain: "bestcf.030101.xyz" },
+    { name: "三网优秀", domain: "cf.tencentapp.cn" }
 ];
 
 // 默认优选IP来源URL（德国、日本、荷兰、新加坡、美国）
