@@ -11,6 +11,7 @@
 - GitHub优选：默认从gslege/CloudflareIP并发拉取DE、JP、NL、SG、US地区IP列表，也支持自定义来源
 - 多协议支持：VLESS、Trojan、VMess
 - 多客户端格式：Clash、Surge、Quantumult X等
+- 强制TLS：所有节点仅使用TLS，禁止80、8080、8880、2052、2082、2086和2095端口
 
 ## 部署
 
@@ -52,7 +53,7 @@ https://your-worker.workers.dev/{UUID}/sub?domain=your-domain.com&epd=yes&epi=ye
 - `epd` - 启用优选域名（默认yes）
 - `epi` - 启用优选IP（默认yes）
 - `egi` - 启用GitHub优选（默认yes）
-- `piu` - 自定义IP来源URL（可选）
+- `piu` - 自定义IP来源URL（可选，仅支持HTTPS）
 - `ev` - 启用VLESS（默认yes）
 - `et` - 启用Trojan（默认no）
 - `mess` - 启用VMess（默认no，注意不是vm，会被屏蔽）
@@ -65,3 +66,5 @@ https://your-worker.workers.dev/{UUID}/sub?domain=your-domain.com&epd=yes&epi=ye
 - 生成的节点需要配合你自己的服务器使用
 - UUID必须是标准格式（xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）
 - VMess参数用的是`mess`不是`vm`，因为`vm`会被某些地方屏蔽
+- 订阅不会生成非TLS节点；自定义列表中的HTTP端口和非HTTPS数据源会被忽略
+- ECH自定义DNS必须使用HTTPS；无效值会回退到默认DoH地址
